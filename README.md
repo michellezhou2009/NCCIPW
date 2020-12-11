@@ -1,10 +1,10 @@
 # NCCIPW
 
-First, you need to install the \code{devtool} package via
+First, you need to install the `devtool` package via
 ```{r}
 install.packages("devtools")
 ```
-To install the \code{NCCIPW} package,
+To install the `NCCIPW` package,
 ```{r}
 library(devtools)
 install_github("michellezhou2009/NCCIPW")
