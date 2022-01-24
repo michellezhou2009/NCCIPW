@@ -43,7 +43,7 @@ WGT.CEN <- function(Ti,Di,t0,Vii.ptb=NULL){
 
 #' Calculate the new weight by reformularizing the NCC sampling as a two-stage stratified sampling
 #'
-#' @description This proposed weight is the Horvitz-Thompson type of weight. 
+#' @description This proposed weight is the Horvitz-Thompson type of weight.
 #'
 #' @param xi a vector of censored event times.
 #' @param di a vector of binary values (1 or 0) indicating whether the true event time is observed.
@@ -56,6 +56,8 @@ WGT.CEN <- function(Ti,Di,t0,Vii.ptb=NULL){
 #' @param yes.ptb logical indicating if obtaining the perturbed counterparts of the IPW estimates, and the default value is \code{FALSE}.
 #' @param control.list a list including two elements: \code{CaseID} and \code{Vii.ptb} that control the perturbation procedure. \code{CaseID} is a vector in which listed the case that each subject that is selected in the sub-cohort for. If \code{id} is the same as \code{CaseID}, it indicates this subject is one of the sub-cohort cases. \code{Vii.ptb} is a vector of perturbation variables, and the default value is \code{NULL} if the perturbation procedure is not implemented for estimating the variance of the IPW estimators.
 #'
+#' @import dplyr
+#'
 #' @export
 #'
 #' @return If \code{yes.ptb=FALSE}, it returns a single-column matrix which includes the NCC weights; otherwise, it returns a matrix with the first column being the NCC weights and the remaining columns being their perturbed counterparts.
@@ -67,7 +69,7 @@ htWGT <- function(xi,di,id,case,control, m0, M.dat=NULL, a.M=NULL, yes.ptb=FALSE
     matrix(vc, ncol=length(vc), nrow=dm, byrow=T)
   }
   if (!is.null(M.dat)) {p.M = ncol(M.dat)}
-  
+
   ti1 = xi[case==1]; n1 = length(ti1); pi1=n1/sum(di==1); case.id = id[case==1]
   Ii1j = VTM(xi,n1) >= ti1 # n1xN matrix I(xi>=tj)
   if (!is.null(M.dat)){
@@ -79,17 +81,18 @@ htWGT <- function(xi,di,id,case,control, m0, M.dat=NULL, a.M=NULL, yes.ptb=FALSE
   P0hati = 1- exp(apply(junk,2,sum,na.rm=T))
   subcohort = case + (1-case)*control
   wgt = rep(0,N); wgt[di==1 & subcohort==1] = 1/(pi1+(1-pi1)*P0hati[di==1 & subcohort==1]); wgt[di==0 & subcohort==1] = 1/P0hati[di==0 & subcohort==1]
-  
+
   if (!yes.ptb) return(wgt) else {
     CaseID = control.list$CaseID; Vii.ptb = control.list$Vii.ptb
     if (pi1<1) pi1.ptb = apply(Vii.ptb[case==1,],2,sum)/apply(Vii.ptb[di==1,],2,sum) else pi1.ptb = rep(1,ncol(Vii.ptb))
     subcohort.ptb = subcohort*Vii.ptb
-    V0ij = data.frame(case=CaseID,control=id) %>% 
+    V0ij = data.frame(case=CaseID,control=id) %>%
       filter(!is.na(case)) %>%
       filter(case!=control) %>%
       arrange(case)
     V0ij.ptb = matrix(rexp(nrow(V0ij)*ncol(Vii.ptb)),nrow=nrow(V0ij),ncol=ncol(Vii.ptb))
-    control.id = id[di==0 & control==1]
+    index.control = which(subcohort==1)
+    control.id = id[index.control]
     control.ptb = lapply(control.id,function(u){
       1-apply(1-V0ij.ptb[V0ij[,2]==u,,drop=F],2,prod)
     }) %>% do.call(rbind,.)
@@ -105,23 +108,25 @@ htWGT <- function(xi,di,id,case,control, m0, M.dat=NULL, a.M=NULL, yes.ptb=FALSE
       p0hati.ptb = lapply(control.id,function(u){
         id.cases = case.id[Ii1j[,id==u]==1]
         junk = lapply(id.cases,function(v){
-        1-apply(V0ij.ptb[V0ij[,1]==v,,drop=F],2,sum)/(n.Ri1[names(n.Ri1)==v]-1)})
+          1-apply(V0ij.ptb[V0ij[,1]==v,,drop=F],2,sum)/(n.Ri1[names(n.Ri1)==v]-1)})
         junk = do.call(rbind,junk)
         1-apply(junk,2,prod)
       }) %>% do.call(rbind,.)
     }
+    control.id = data.frame(control=control.id,di=di[index.control])
+    pi1.ptb.m = VTM(pi1.ptb,sum(di==1 & subcohort==1))
     wgt.ptb = matrix(0,nrow=N,ncol=ncol(Vii.ptb))
-    wgt.ptb[di==1 & subcohort==1] = subcohort.ptb[di==1 & subcohort==1,]/VTM(pi1.ptb,sum(di==1 & subcohort==1))
-    wgt.ptb[di==0 & control==1] = control.ptb/p0hati.ptb
+    wgt.ptb[di==1 & subcohort==1] = subcohort.ptb[di==1 & subcohort==1,]/(pi1.ptb.m+(1-pi1.ptb.m)*p0hati.ptb[control.id$di==1,])
+    wgt.ptb[di==0 & control==1] = control.ptb[control.id$di==0,]/p0hati.ptb[control.id$di==0,]
     return(cbind(wgt,wgt.ptb))
   }
-  
+
   return(wgt)
 }
 
 #' Calculate the proposed weight which weights the event controls with the inverse selection probability
 #'
-#' @description This proposed weight modifies the method in Samuelsen (1997) by weighting the event controls with the inverse selection probability. 
+#' @description This proposed weight modifies the method in Samuelsen (1997) by weighting the event controls with the inverse selection probability.
 #'
 #' @param xi a vector of censored event times.
 #' @param di a vector of binary values (1 or 0) indicating whether the true event time is observed.
@@ -174,6 +179,8 @@ samWGT <- function(xi,di,id,case,control,m0,M.dat=NULL,a.M=NULL){
 #' @param yes.ptb logical indicating if obtaining the perturbed counterparts of the IPW estimates, and the default value is \code{FALSE}.
 #' @param control.list a list including two elements: \code{CaseID} and \code{Vii.ptb} that control the perturbation procedure. \code{CaseID} is a vector in which listed the case that each subject that is selected in the sub-cohort for. If \code{id} is the same as \code{CaseID}, it indicates this subject is one of the sub-cohort cases. \code{Vii.ptb} is a vector of perturbation variables, and the default value is \code{NULL} if the perturbation procedure is not implemented for estimating the variance of the IPW estimators.
 #'
+#' @import dplyr
+#'
 #' @export
 #'
 #' @return If \code{yes.ptb=FALSE}, it returns a single-column matrix which includes the NCC weights; otherwise, it returns a matrix with the first column being the NCC weights and the remaining columns being their perturbed counterparts.
@@ -200,11 +207,11 @@ newWGT <- function(xi,di,id,case,control, m0, M.dat=NULL, a.M=NULL, yes.ptb=FALS
     CaseID = control.list$CaseID; Vii.ptb = control.list$Vii.ptb
     if (pi1<1) pi1.ptb = apply(Vii.ptb[case==1,],2,sum)/apply(Vii.ptb[di==1,],2,sum) else pi1.ptb = rep(1,ncol(Vii.ptb))
     case.ptb = case*Vii.ptb
-    V0ij = data.frame(case=CaseID,control=id) %>% 
+    V0ij = data.frame(case=CaseID,control=id) %>%
       filter(!is.na(case)) %>%
       filter(case!=control) %>%
       arrange(case)
-    
+
     V0ij.ptb = matrix(rexp(nrow(V0ij)*ncol(Vii.ptb)),nrow=nrow(V0ij),ncol=ncol(Vii.ptb))
     control.id = id[di==0 & control==1]
     control.ptb = lapply(control.id,function(u){
