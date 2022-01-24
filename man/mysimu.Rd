@@ -4,30 +4,21 @@
 \alias{mysimu}
 \title{Function to simulation NCC data}
 \usage{
-mysimu(N, yes.matching = FALSE, a0 = NULL, m0, pi1)
+mysimu(N, yes.match = FALSE, m0, pi1)
 }
 \arguments{
 \item{N}{sample size.}
 
-\item{yes.matching}{logical indicating whether the controls are selected with or without matching. The default value is \code{FALSE}.}
-
-\item{a0}{a numerical vector which includes the matching constraint for each matching variable. The default value is \code{NULL} if \code{yes.matching=FALSE}.}
+\item{yes.match}{logical indicating whether the controls are selected with or without matching. The default value is \code{FALSE}.}
 
 \item{m0}{a numerical value which is the number of controls selected for each case.}
 
 \item{pi1}{the percentage of events that are selected as cases}
 }
 \value{
-a list of elements:
-\describe{
-\item{data}{a \code{data.frame} with the following variables: \code{time} (censored event time), \code{status} (censoring indicator), \code{marker1} and \code{marker2} (two markers).}
-\item{id}{a vector which identifies the subjects.}
-\item{case}{a vector which indicates whether each subject is a sub-cohort case.}
-\item{control}{a vector which indicates whether each subject is a sub-cohort control.}
-\item{m0}{number of controls selected for each case.}
-\item{matchid}{a matrix in which the number of rows is the same as the number of selected sub-cohort cases, and the number of columns is \code{m0}+1. In each row, the first element is the ID of a case and the remaining elements are the IDs of the controls selected for the given case.}
-}
-If \code{yes.matching=TRUE}, the list includes another two elements: \code{aM} (a vector of the matching constraint for each matching variable, i.e., \code{a0}) and \code{Mdat} (a \code{data.frame} including two matching variables).
+data a \code{data.frame} with the following variables: \code{time} (censored event time), \code{status} (censoring indicator), \code{marker1} and \code{marker2} (two markers), \code{id} (subjects' ID), \code{case} (indicator for sub-cohort case), \code{control} (indicator for sub-cohort control), \code{CaseID} (indicator which sub-cohort case that each subject is selected in the sub-cohort for).
+
+If \code{yes.match=TRUE}, the list includes another two elements: \code{aM} (a vector of the matching constraint for each matching variable, i.e., \code{a0}) and \code{Mdat} (a \code{data.frame} including two matching variables).
 }
 \description{
 Function to simulation NCC data

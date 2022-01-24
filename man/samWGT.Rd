@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers.R
 \name{samWGT}
 \alias{samWGT}
-\title{Calculate the weights proposed in Samuelsen (1997).}
+\title{Calculate the proposed weight which weights the event controls with the inverse selection probability}
 \usage{
 samWGT(xi, di, id, case, control, m0, M.dat = NULL, a.M = NULL)
 }
@@ -27,7 +27,7 @@ samWGT(xi, di, id, case, control, m0, M.dat = NULL, a.M = NULL)
 a vector of NCC weights.
 }
 \description{
-Calculate the weights proposed in Samuelsen 1997, accounting for missing marker values due to the NCC design.
+This proposed weight modifies the method in Samuelsen (1997) by weighting the event controls with the inverse selection probability.
 }
 \references{
 Samuelsen, S. (1997). A psudolikelihood approach to analysis of nested case-control studies. Biometrika, 84(2):379–394.
