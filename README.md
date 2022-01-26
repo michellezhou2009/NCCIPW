@@ -10,35 +10,36 @@ install.packages("devtools")
 ```
 To install the `NCCIPW` package,
 ```{r}
-library(devtools)
-install_github("michellezhou2009/NCCIPW")
+devtools::install_github("michellezhou2009/NCCIPW")
 library(NCCIPW)
 ```
 
 ## Example
 
-An example data `myexample` is included in the package, and it is a simulated data from the simulation setting included in the manuscript. The following gives the R code to fit a time-dependent generalized linear model, and the output includes the new IPW estimates of the model parameters (i.e., regression coefficients) and accuracy parameters (including AUC and others) as well as their perturbed counterparts. 
+An example data `myexample` is included in the package, and it is a simulated data from the simulation setting in the manuscript. The following gives the R code to fit a time-dependent generalized linear model, and the output includes the IPW estimates using the Horvitz-Thompson's weight for the model parameters (i.e., regression coefficients) and accuracy parameters (including AUC and others) as well as their perturbed counterparts. 
 
 ```{r}
 data("myexample")
 GLM.IPW(formula=Surv(time,status)~marker1+marker2,
-      data=myexample$data, family=binomial(link=logit),
-      id=myexample$id,
-      case=myexample$case,
-      control=myexample$control,
-      m0=myexample$m0,t0=1,
-      yes.matching=T,control.matching=list(Mdat=myexample$Mdat,aM=myexample$aM),
-      yes.ptb=TRUE,control.ptb=list(n.ptb=100,matchid=myexample$matchid))
+      data=myexample$data,
+      id="id",
+      case="case",
+      control="control",
+      m0=3,t0=1, 
+      weight.type = "HT",      
+      yes.match=T,control.matching=list(Mdat=myexample$Mdat,aM=myexample$aM),
+      yes.ptb=TRUE,control.ptb=list(n.ptb=10,CaseID="CaseID"))
 ```
 
-The following gives the R code to fit a Cox proportional hazards model, and the output includes the new IPW estimates of the model parameters (i.e., regression coefficients) and accuracy parameters (including AUC and others) as well as their perturbed counterparts. 
+The following gives the R code to fit a Cox proportional hazards model, and the output includes the IPW estimates using the Horvitz-Thompson's weight for the model parameters (i.e., regression coefficients) and accuracy parameters (including AUC and others) as well as their perturbed counterparts. 
 ```{r}
 PH.IPW(formula=Surv(time,status)~marker1+marker2,
       data=myexample$data,
-      id=myexample$id,
-      case=myexample$case,
-      control=myexample$control,
-      m0=myexample$m0,t0=1,
-      yes.matching=T,control.matching=list(Mdat=myexample$Mdat,aM=myexample$aM),
-      yes.ptb=TRUE,control.ptb=list(n.ptb=100,matchid=myexample$matchid))
+      id="id",
+      case="case",
+      control="control",
+      m0=3,t0=1, 
+      weight.type = "HT",      
+      yes.match=T,control.matching=list(Mdat=myexample$Mdat,aM=myexample$aM),
+      yes.ptb=TRUE,control.ptb=list(n.ptb=10,CaseID="CaseID"))
 ```

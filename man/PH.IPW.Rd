@@ -64,6 +64,7 @@ IPW estimates of model parameters and accuracy parameters for Cox's proportional
       case="case",
       control="control",
       m0=3,t0=1,
+      weight.type = "HT",
       yes.match=T,control.matching=list(Mdat=myexample$Mdat,aM=myexample$aM),
       yes.ptb=TRUE,control.ptb=list(n.ptb=10,CaseID="CaseID"))}
 }
