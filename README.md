@@ -1,6 +1,7 @@
 # NCCIPW
 
-This R package is to implement the proposed method in the manuscript titled ["A new weighting method when not all the events are selected as cases in a nested case-control study"](https://arxiv.org/abs/2104.02665).
+This R package is to implement the proposed method in the manuscript titled "New weighting methods when cases are only a subset of
+events in a nested case-control study".
 
 ## Instrall `NCCIPW`
 
